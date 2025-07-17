@@ -1,0 +1,251 @@
+#helpedInfo {
+    color: #42a5f5;
+}
+
+#tooltip-content {
+    font-size: 14px;
+    font-weight: bold;
+}
+
+#template-content {
+    display: inline-flex;
+}
+
+.form-container {
+    padding: 20px;
+
+    h2 {
+        color: #333;
+        margin-bottom: 20px;
+        border-bottom: 2px solid #e0e0e0;
+        padding-bottom: 10px;
+    }
+}
+
+.form-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
+.button {
+    margin-top: 20px;
+    margin-right: 10px;
+    min-width: 120px;
+}
+
+.submit-button {
+    background-color: #4caf50;
+
+    &:hover {
+        background-color: #45a049;
+    }
+}
+
+.cancel-button {
+    background-color: #f44336;
+    color: white;
+
+    &:hover {
+        background-color: #da190b;
+    }
+}
+
+.reset-button {
+    background-color: #ff9800;
+    color: white;
+
+    &:hover {
+        background-color: #f57c00;
+    }
+}
+
+.fileuploader-container {
+    border: 1px solid #d3d3d3;
+    margin: 20px 20px 0 20px;
+    padding: 10px;
+    border-radius: 4px;
+    background-color: #fafafa;
+}
+
+.employees-table-container {
+    margin-top: 40px;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+
+    h2 {
+        color: #333;
+        margin-bottom: 20px;
+        border-bottom: 2px solid #e0e0e0;
+        padding-bottom: 10px;
+    }
+}
+
+.employees-card-container {
+    margin-top: 40px;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+
+    h2 {
+        color: #333;
+        margin-bottom: 20px;
+        border-bottom: 2px solid #e0e0e0;
+        padding-bottom: 10px;
+    }
+
+    .dx-cardview {
+        background-color: white;
+        border-radius: 4px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .dx-card {
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        transition:
+            transform 0.2s ease,
+            box-shadow 0.2s ease;
+
+        &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+    }
+
+    .dx-card-content {
+        padding: 16px;
+    }
+
+    .dx-card-footer {
+        padding: 12px;
+        border-top: 1px solid #e0e0e0;
+        background-color: #fafafa;
+    }
+}
+
+.dx-datagrid-filter-row {
+    background-color: transparent;
+}
+
+.dx-datagrid {
+    background-color: white;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.dx-datagrid-headers {
+    background-color: #f5f5f5;
+    font-weight: bold;
+}
+
+.dx-datagrid-rowsview .dx-row {
+    &:hover {
+        background-color: #f0f8ff;
+    }
+}
+
+.dx-form-group-caption {
+    font-weight: bold;
+    color: #333;
+    border-bottom: 1px solid #e0e0e0;
+    padding-bottom: 5px;
+    margin-bottom: 15px;
+}
+
+.dx-form-item-label {
+    font-weight: 500;
+    color: #555;
+}
+
+.dx-texteditor {
+    border-radius: 4px;
+}
+
+.dx-texteditor-input {
+    padding: 8px 12px;
+}
+
+.dx-invalid {
+    border-color: #f44336 !important;
+}
+
+.dx-invalid .dx-texteditor-input {
+    border-color: #f44336 !important;
+}
+
+.dx-validationsummary {
+    background-color: #ffebee;
+    border: 1px solid #f44336;
+    border-radius: 4px;
+    padding: 10px;
+    margin-top: 10px;
+}
+
+.dx-button {
+    border-radius: 4px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.dx-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.dx-button[type="success"] {
+    background-color: #4caf50;
+    border-color: #4caf50;
+}
+
+.dx-button[type="success"]:hover {
+    background-color: #45a049;
+    border-color: #45a049;
+}
+
+.dx-selectbox-popup {
+    border-radius: 4px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.dx-daterangebox-popup {
+    border-radius: 4px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.dx-notification {
+    border-radius: 4px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.dx-fileuploader {
+    border-radius: 4px;
+}
+
+.dx-fileuploader-button {
+    border-radius: 4px;
+}
+
+@media (max-width: 768px) {
+    .form-container {
+        padding: 10px;
+    }
+
+    .employees-table-container,
+    .employees-card-container {
+        padding: 10px;
+        margin-top: 20px;
+    }
+
+    .form-buttons {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .button {
+        width: 100%;
+        margin-right: 0;
+    }
+}
