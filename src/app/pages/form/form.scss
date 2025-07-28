@@ -126,6 +126,45 @@
     }
 }
 
+.popup-content {
+    padding: 20px;
+    text-align: center;
+
+    p {
+        margin-bottom: 10px;
+        font-size: 16px;
+        color: #333;
+    }
+
+    strong {
+        color: #f44336;
+    }
+}
+
+.popup-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    padding: 0 20px 20px 20px;
+
+    .dx-button {
+        min-width: 100px;
+    }
+}
+
+.dx-popup-title {
+    font-weight: bold;
+    color: #333;
+}
+
+.dx-popup-content {
+    padding: 4px;
+}
+
+.dx-popup {
+    display: none !important;
+}
+
 .dx-datagrid-filter-row {
     background-color: transparent;
 }

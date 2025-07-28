@@ -42,6 +42,7 @@ import service, { Employee } from "./data";
 import LabelTemplate from "./LabelTemplate";
 import LabelNotesTemplate from "./LabelNotesTemplate";
 import FileUploader from "devextreme-react/file-uploader";
+import Popup from "devextreme-react/popup";
 import Button from "devextreme-react/button";
 import notify from "devextreme/ui/notify";
 
@@ -113,6 +114,11 @@ export default function Page() {
   const [formData, setFormData] = useState<Employee>(service.getEmployee());
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+
+  const [deletePopupVisible, setDeletePopupVisible] = useState(false);
+  const [employeeToDelete, setEmployeeToDelete] = useState<Employee | null>(
+    null,
+  );
 
   // Load employees on component mount
   useEffect(() => {
@@ -217,20 +223,31 @@ export default function Page() {
     notify("Employee loaded for editing", "info", 2000);
   }, []);
 
-  const onDeleteEmployee = useCallback(
-    (id: number) => {
-      const success = service.deleteEmployee(id);
+  const onDeleteEmployee = useCallback((employee: Employee) => {
+    setEmployeeToDelete(employee);
+    setDeletePopupVisible(true);
+  }, []);
+
+  const confirmDelete = useCallback(() => {
+    if (employeeToDelete) {
+      const success = service.deleteEmployee(employeeToDelete.ID);
       if (success) {
         notify("Employee deleted successfully!", "success", 2000);
         refreshEmployees();
         // Reset form if we're editing the deleted employee
-        if (editingId === id) {
+        if (editingId === employeeToDelete.ID) {
           resetForm();
         }
       }
-    },
-    [editingId, refreshEmployees, resetForm],
-  );
+      setDeletePopupVisible(false);
+      setEmployeeToDelete(null);
+    }
+  }, [employeeToDelete, editingId, refreshEmployees, resetForm]);
+
+  const cancelDelete = useCallback(() => {
+    setDeletePopupVisible(false);
+    setEmployeeToDelete(null);
+  }, []);
 
   const onCancelEdit = useCallback(() => {
     resetForm();
@@ -238,264 +255,304 @@ export default function Page() {
   }, [resetForm]);
 
   return (
-    <div className="form-container">
-      <Form ref={formRef} onContentReady={validateForm} formData={formData}>
-        <GroupItem
-          colCount={2}
-          caption={isEditing ? "Edit Employee Details" : "Employee Details"}
-        >
-          <Item
-            dataField="FirstName"
-            editorOptions={{ ...nameEditorOptions, disabled: false }}
+    <>
+      <div className="form-container">
+        <Form ref={formRef} onContentReady={validateForm} formData={formData}>
+          <GroupItem
+            colCount={2}
+            caption={isEditing ? "Edit Employee Details" : "Employee Details"}
           >
-            <Label render={LabelTemplate("user")} />
-          </Item>
-          <Item
-            dataField="LastName"
-            editorOptions={{ ...nameEditorOptions, disabled: false }}
-          >
-            <Label render={LabelTemplate("user")} />
-          </Item>
-          <Item
-            dataField="Position"
-            editorType="dxSelectBox"
-            editorOptions={positionEditorOptions}
-            validationRules={validationRules.position}
-          >
-            <Label render={LabelTemplate("info")} />
-          </Item>
-          <Item dataField="Email" validationRules={validationRules.email}>
-            <Label render={LabelTemplate("email")} />
-          </Item>
-          <SimpleItem
-            dataField="Password"
-            editorType="dxTextBox"
-            editorOptions={getPasswordOptions()}
-          >
-            <RequiredRule message="Password is required" />
-          </SimpleItem>
-          <SimpleItem
-            dataField="ConfirmPassword"
-            editorType="dxTextBox"
-            editorOptions={{
-              mode: "password",
-              valueChangeEvent: "keyup",
-              buttons: [
-                {
-                  name: "password",
-                  location: "after",
-                  options: {
-                    stylingMode: "text",
-                    icon: "eyeopen",
-                    onClick: () => changePasswordMode("ConfirmPassword"),
+            <Item
+              dataField="FirstName"
+              editorOptions={{ ...nameEditorOptions, disabled: false }}
+            >
+              <Label render={LabelTemplate("user")} />
+            </Item>
+            <Item
+              dataField="LastName"
+              editorOptions={{ ...nameEditorOptions, disabled: false }}
+            >
+              <Label render={LabelTemplate("user")} />
+            </Item>
+            <Item
+              dataField="Position"
+              editorType="dxSelectBox"
+              editorOptions={positionEditorOptions}
+              validationRules={validationRules.position}
+            >
+              <Label render={LabelTemplate("info")} />
+            </Item>
+            <Item dataField="Email" validationRules={validationRules.email}>
+              <Label render={LabelTemplate("email")} />
+            </Item>
+            <SimpleItem
+              dataField="Password"
+              editorType="dxTextBox"
+              editorOptions={getPasswordOptions()}
+            >
+              <RequiredRule message="Password is required" />
+            </SimpleItem>
+            <SimpleItem
+              dataField="ConfirmPassword"
+              editorType="dxTextBox"
+              editorOptions={{
+                mode: "password",
+                valueChangeEvent: "keyup",
+                buttons: [
+                  {
+                    name: "password",
+                    location: "after",
+                    options: {
+                      stylingMode: "text",
+                      icon: "eyeopen",
+                      onClick: () => changePasswordMode("ConfirmPassword"),
+                    },
                   },
-                },
-              ],
-            }}
-          >
-            <RequiredRule message="Please confirm your password" />
-            <CustomRule
-              message="Password and Confirm Password do not match"
-              validationCallback={({ value }) => {
-                const passwordValue = formRef.current
-                  ?.instance()
-                  .getEditor("Password")
-                  ?.option("value");
-                return value === passwordValue;
+                ],
               }}
-            />
-          </SimpleItem>
-          <SimpleItem
-            dataField="HireDate"
-            editorType="dxDateRangeBox"
-            editorOptions={hireDateEditorOptions}
-          >
-            <Label text="Hire Date" />
-            <CustomRule
-              message="The hire period must not exceed 25 days"
-              validationCallback={validateHireDatesRange}
-            />
-            <CustomRule
-              message="Both start and end dates must be selected"
-              validationCallback={validateHireDatesPresence}
-            />
-          </SimpleItem>
-          <Item
-            dataField="BirthDate"
-            editorType="dxDateBox"
-            editorOptions={birthDateEditorOptions}
-          >
-            <Label render={LabelTemplate("event")} />
-          </Item>
-          <Item
-            dataField="Phone"
-            editorOptions={phoneEditorOptions}
-            validationRules={validationRules.phone}
-          >
-            <Label render={LabelTemplate("tel")} />
-          </Item>
-          <Item dataField="Address">
-            <Label render={LabelTemplate("home")} />
-          </Item>
-          <Item
-            dataField="Notes"
-            colSpan={2}
-            editorType="dxTextArea"
-            editorOptions={notesEditorOptions}
-          >
-            <Label render={LabelNotesTemplate} />
-          </Item>
-          <Item
-            label={{ visible: false }}
-            render={() => (
-              <div className="fileuploader-container">
-                <FileUploader
-                  inputAttr={fileUploaderLabel}
-                  selectButtonText="Select photo"
-                  labelText=""
-                  accept="image/*"
-                  uploadMode="useForm"
-                />
-              </div>
-            )}
-          />
-
-          {/* Form buttons */}
-          <Item
-            label={{ visible: false }}
-            colSpan={2}
-            render={() => (
-              <div className="form-buttons">
-                <Button
-                  className="button submit-button"
-                  text={isEditing ? "Update Employee" : "Add Employee"}
-                  type="success"
-                  onClick={onSubmit}
-                />
-                {isEditing && (
-                  <Button
-                    className="button cancel-button"
-                    text="Cancel"
-                    onClick={onCancelEdit}
+            >
+              <RequiredRule message="Please confirm your password" />
+              <CustomRule
+                message="Password and Confirm Password do not match"
+                validationCallback={({ value }) => {
+                  const passwordValue = formRef.current
+                    ?.instance()
+                    .getEditor("Password")
+                    ?.option("value");
+                  return value === passwordValue;
+                }}
+              />
+            </SimpleItem>
+            <SimpleItem
+              dataField="HireDate"
+              editorType="dxDateRangeBox"
+              editorOptions={hireDateEditorOptions}
+            >
+              <Label text="Hire Date" />
+              <CustomRule
+                message="The hire period must not exceed 25 days"
+                validationCallback={validateHireDatesRange}
+              />
+              <CustomRule
+                message="Both start and end dates must be selected"
+                validationCallback={validateHireDatesPresence}
+              />
+            </SimpleItem>
+            <Item
+              dataField="BirthDate"
+              editorType="dxDateBox"
+              editorOptions={birthDateEditorOptions}
+            >
+              <Label render={LabelTemplate("event")} />
+            </Item>
+            <Item
+              dataField="Phone"
+              editorOptions={phoneEditorOptions}
+              validationRules={validationRules.phone}
+            >
+              <Label render={LabelTemplate("tel")} />
+            </Item>
+            <Item dataField="Address">
+              <Label render={LabelTemplate("home")} />
+            </Item>
+            <Item
+              dataField="Notes"
+              colSpan={2}
+              editorType="dxTextArea"
+              editorOptions={notesEditorOptions}
+            >
+              <Label render={LabelNotesTemplate} />
+            </Item>
+            <Item
+              label={{ visible: false }}
+              render={() => (
+                <div className="fileuploader-container">
+                  <FileUploader
+                    inputAttr={fileUploaderLabel}
+                    selectButtonText="Select photo"
+                    labelText=""
+                    accept="image/*"
+                    uploadMode="useForm"
                   />
-                )}
-                <Button
-                  className="button reset-button"
-                  text="Reset Form"
-                  onClick={resetForm}
-                />
-              </div>
-            )}
-          />
-        </GroupItem>
-      </Form>
+                </div>
+              )}
+            />
 
-      {/* Employees Table */}
-      <div className="employees-table-container">
-        <h2>Employees List</h2>
-        <DataGrid
-          dataSource={employees}
-          showBorders={true}
-          focusedRowEnabled={true}
-          columnAutoWidth={true}
-          columnHidingEnabled={true}
-          keyExpr="ID"
-          remoteOperations={false}
-        >
-          <Paging defaultPageSize={10} />
-          <Pager showPageSizeSelector={true} showInfo={true} />
-          <FilterRow visible={true} />
-          <Editing
-            mode="popup"
-            allowUpdating={false}
-            allowDeleting={true}
-            confirmDelete={true}
-          />
+            {/* Form buttons */}
+            <Item
+              label={{ visible: false }}
+              colSpan={2}
+              render={() => (
+                <div className="form-buttons">
+                  <Button
+                    className="button submit-button"
+                    text={isEditing ? "Update Employee" : "Add Employee"}
+                    type="success"
+                    onClick={onSubmit}
+                  />
+                  {isEditing && (
+                    <Button
+                      className="button cancel-button"
+                      text="Cancel"
+                      onClick={onCancelEdit}
+                    />
+                  )}
+                  <Button
+                    className="button reset-button"
+                    text="Reset Form"
+                    onClick={resetForm}
+                  />
+                </div>
+              )}
+            />
+          </GroupItem>
+        </Form>
 
-          {/* <Toolbar>
+        {/* Employees Table */}
+        <div className="employees-table-container">
+          <h2>Employees List</h2>
+          <DataGrid
+            dataSource={employees}
+            showBorders={true}
+            focusedRowEnabled={true}
+            columnAutoWidth={true}
+            columnHidingEnabled={true}
+            keyExpr="ID"
+            remoteOperations={false}
+          >
+            <Paging defaultPageSize={10} />
+            <Pager showPageSizeSelector={true} showInfo={true} />
+            <FilterRow visible={true} />
+            <Editing
+              mode="popup"
+              allowUpdating={false}
+              allowDeleting={true}
+              confirmDelete={true}
+            />
+
+            {/* <Toolbar>
             <GridItem name="addRowButton" visible={false} />
             <GridItem name="saveButton" />
             <GridItem name="cancelButton" />
             <GridItem name="deleteButton" />
           </Toolbar> */}
 
-          <Column dataField="ID" width={70} caption="ID" />
-          <Column dataField="FirstName" caption="First Name" />
-          <Column dataField="LastName" caption="Last Name" />
-          <Column dataField="Position" caption="Position" />
-          <Column dataField="Email" caption="Email" />
-          <Column dataField="Phone" caption="Phone" />
-          <Column dataField="HireDateDisplay" caption="Hire Date" />
-          <Column dataField="BirthDateDisplay" caption="Birth Date" />
-          <Column dataField="Address" caption="Address" />
-          <Column dataField="CreatedAt" caption="Created" />
-          <Column dataField="UpdatedAt" caption="Updated" />
-          <Column
-            type="buttons"
-            width={100}
-            buttons={[
-              {
-                hint: "Edit",
-                icon: "edit",
-                onClick: (e) => e.row && onEditEmployee(e.row.data),
-              },
-              {
-                hint: "Delete",
-                icon: "trash",
-                onClick: (e) => e.row && onDeleteEmployee(e.row.data.ID),
-              },
-            ]}
-          />
-        </DataGrid>
+            <Column dataField="ID" width={70} caption="ID" />
+            <Column dataField="FirstName" caption="First Name" />
+            <Column dataField="LastName" caption="Last Name" />
+            <Column dataField="Position" caption="Position" />
+            <Column dataField="Email" caption="Email" />
+            <Column dataField="Phone" caption="Phone" />
+            <Column dataField="HireDateDisplay" caption="Hire Date" />
+            <Column dataField="BirthDateDisplay" caption="Birth Date" />
+            <Column dataField="Address" caption="Address" />
+            <Column dataField="CreatedAt" caption="Created" />
+            <Column dataField="UpdatedAt" caption="Updated" />
+            <Column
+              type="buttons"
+              width={100}
+              buttons={[
+                {
+                  hint: "Edit",
+                  icon: "edit",
+                  onClick: (e) => e.row && onEditEmployee(e.row.data),
+                },
+                {
+                  hint: "Delete",
+                  icon: "trash",
+                  onClick: (e) => e.row && onDeleteEmployee(e.row.data),
+                },
+              ]}
+            />
+          </DataGrid>
+        </div>
+
+        {/* Employees Card View */}
+        <div className="employees-card-container">
+          <h2>Employees Card View</h2>
+          <CardView
+            dataSource={employees}
+            keyExpr="ID"
+            cardMinWidth={300}
+            cardsPerRow="auto"
+          >
+            <CardPaging pageSize={6} />
+            <HeaderFilter visible={true} />
+            <SearchPanel visible={true} />
+            <Selection mode="single" />
+
+            <CardCover
+              imageExpr={({ FirstName, LastName }: Employee) =>
+                `https://via.placeholder.com/300x200/4CAF50/white?text=${FirstName}+${LastName}`
+              }
+              altExpr={({ FirstName, LastName }: Employee) =>
+                `Photo of ${FirstName} ${LastName}`
+              }
+            />
+
+            <CardColumn
+              caption="Full Name"
+              calculateFieldValue={({ FirstName, LastName }: Employee) =>
+                `${FirstName} ${LastName}`
+              }
+              allowSorting={true}
+              allowFiltering={true}
+            />
+            <CardColumn dataField="Position" caption="Position" />
+            <CardColumn dataField="Email" caption="Email" />
+            <CardColumn dataField="Phone" caption="Phone" />
+            <CardColumn
+              caption="Hire Date"
+              dataField="HireDateDisplay"
+              allowSorting={true}
+            />
+            <CardColumn
+              caption="Birth Date"
+              dataField="BirthDateDisplay"
+              allowSorting={true}
+            />
+            <CardColumn dataField="Address" caption="Address" />
+          </CardView>
+        </div>
       </div>
-
-      {/* Employees Card View */}
-      <div className="employees-card-container">
-        <h2>Employees Card View</h2>
-        <CardView
-          dataSource={employees}
-          keyExpr="ID"
-          cardMinWidth={300}
-          cardsPerRow="auto"
-        >
-          <CardPaging pageSize={6} />
-          <HeaderFilter visible={true} />
-          <SearchPanel visible={true} />
-          <Selection mode="single" />
-
-          <CardCover
-            imageExpr={({ FirstName, LastName }: Employee) =>
-              `https://via.placeholder.com/300x200/4CAF50/white?text=${FirstName}+${LastName}`
-            }
-            altExpr={({ FirstName, LastName }: Employee) =>
-              `Photo of ${FirstName} ${LastName}`
-            }
+      {/* Delete Confirmation Popup */}
+      <Popup
+        visible={deletePopupVisible}
+        onHiding={cancelDelete}
+        dragEnabled={false}
+        hideOnOutsideClick={true}
+        showCloseButton={true}
+        showTitle={true}
+        title="Confirm Delete"
+        container=".form-container"
+        width={400}
+        height={"auto"}
+      >
+        <div className="popup-content">
+          <p>
+            Are you sure you want to delete the employee{" "}
+            <strong>
+              {employeeToDelete?.FirstName} {employeeToDelete?.LastName}
+            </strong>
+            ?
+          </p>
+          <p>This action cannot be undone.</p>
+        </div>
+        <div className="popup-buttons">
+          <Button
+            text="Cancel"
+            onClick={cancelDelete}
+            stylingMode="outlined"
+            type="normal"
           />
-
-          <CardColumn
-            caption="Full Name"
-            calculateFieldValue={({ FirstName, LastName }: Employee) =>
-              `${FirstName} ${LastName}`
-            }
-            allowSorting={true}
-            allowFiltering={true}
+          <Button
+            text="Delete"
+            onClick={confirmDelete}
+            stylingMode="contained"
+            type="danger"
           />
-          <CardColumn dataField="Position" caption="Position" />
-          <CardColumn dataField="Email" caption="Email" />
-          <CardColumn dataField="Phone" caption="Phone" />
-          <CardColumn
-            caption="Hire Date"
-            dataField="HireDateDisplay"
-            allowSorting={true}
-          />
-          <CardColumn
-            caption="Birth Date"
-            dataField="BirthDateDisplay"
-            allowSorting={true}
-          />
-          <CardColumn dataField="Address" caption="Address" />
-        </CardView>
-      </div>
-    </div>
+        </div>
+      </Popup>
+    </>
   );
 }
